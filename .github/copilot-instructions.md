@@ -1,0 +1,293 @@
+# GitHub Copilot Agent Instructions for obsidian-vcf-contacts
+
+## Project Overview
+
+This is an Obsidian plugin that manages contacts using the vCard 4.0 standard format. The plugin enables contact management within Obsidian, including relationship tracking, VCF import/export, and bidirectional synchronization with external contact systems.
+
+**Repository**: https://github.com/iandennismiller/obsidian-vcf-contacts
+
+## Technology Stack
+
+- **Language**: TypeScript 4.7.4
+- **Runtime**: Node.js (v16 or later)
+- **Build Tool**: esbuild
+- **Testing Framework**: Vitest
+- **Linter**: ESLint with TypeScript rules
+- **UI Framework**: React 18.2.0 (for plugin components)
+- **Target Platform**: Obsidian plugin API
+- **Vcard Version**: 4.0
+
+## Documentation Structure
+
+### `/docs` - User and Developer Documentation
+
+User-facing and developer-facing documentation:
+- **User Guides**: Getting started, features, installation
+- **Development Guides**: Architecture, setup, testing, contributing
+- **Demo Data**: Example contact files for testing
+
+### `/project` - Project Management
+
+Internal project documentation:
+
+#### `/project/user-stories` - User Stories
+User stories describing **what** users want to accomplish:
+- `vcf-file-management.md` - VCF import/export stories
+- `relationship-management.md` - Relationship sync stories
+- `contact-data-management.md` - Contact CRUD stories
+- `advanced-workflows.md` - Bulk operations and complex workflows
+- `technical-stories.md` - Error handling, performance, reliability
+- `contact-information-display.md` - Contact section UI stories
+- `external-integration.md` - External tool integration
+
+#### `/project/plans` - Implementation Plans
+Multi-stage implementation plans for complex features
+
+#### `/project/references` - Third-Party References
+Documentation for external libraries and APIs (vCard specs, Obsidian API)
+
+#### `/project/specifications` - Technical Specifications
+Technical specifications describing **what** the system does and expected outcomes
+
+**Usage**: When working on a feature, first check user stories to understand what users need, then check `/project/specifications/` for technical details.
+
+## Setup Instructions
+
+### Initial Setup
+
+```bash
+# Install dependencies
+npm install --legacy-peer-deps
+
+# Build the plugin
+npm run build
+
+# Run tests once (CI mode)
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run tests with coverage
+npm run test:coverage
+
+# Development build (watch mode)
+npm run dev
+
+# Type check only (no emit)
+npm run compile
+```
+
+### Known Issues
+
+- The build process uses `tsc -noEmit -skipLibCheck` which allows the build to proceed despite these errors.
+
+## Architecture
+
+### Model-Based Organization
+
+The plugin uses a model-based architecture with clear separation of concerns. Core models are located in `src/models/`:
+
+1. **ContactManager** (`src/models/contactManager/`)
+   - Manages collection of contact notes in the vault
+   - Handles contact file detection, scanning, and caching
+   - Implements UID-based contact lookup
+   - Manages bidirectional relationship synchronization
+
+2. **ContactNote** (`src/models/contactNote/`)
+   - Manages individual contact note operations
+   - Handles relationship parsing and management
+   - Gender-aware relationship term processing
+   - Frontmatter and markdown synchronization
+
+3. **VcardFile** (`src/models/vcardFile/`)
+   - VCF file parsing (vCard 4.0 format)
+   - VCF file generation and validation
+   - Conversion between Obsidian frontmatter and vCard format
+
+4. **VcardManager** (`src/models/vcardManager/`)
+   - VCF collection management
+   - Write queue system for controlled file operations
+   - Batch processing of VCF files
+
+5. **CuratorManager** (`src/models/curatorManager/`)
+   - Processor-based system for contact operations
+   - Coordinates processor execution and dependencies
+   - Contains curator type definitions (CuratorProcessor, CuratorQueItem, RunType, etc.)
+
+### Curator Processors
+
+Data operations are implemented as processors in `src/curators/`:
+- `genderInferenceProcessor`: Infers gender from relationship terms
+- `genderRenderProcessor`: Renders gender-aware relationship terms
+- `relatedFrontMatterProcessor`: Syncs relationships to frontmatter
+- `relatedListProcessor`: Syncs relationships to Related section
+- `relatedNamespaceUpgradeProcessor`: Migrates old relationship formats
+- `uidProcessor`: Manages contact UIDs
+- `vcardSyncPreProcessor` & `vcardSyncPostProcessor`: VCF sync operations
+
+## Testing
+
+### Test Organization
+
+Tests are organized in `tests/` directory:
+
+- **`tests/units/`**: Unit tests for individual components
+  - `curators/`: Tests for curator processors
+  - `models/`: Tests for model classes
+  
+- **`tests/stories/`**: Integration tests for user stories
+  - End-to-end scenarios like relationship management, VCF sync, etc.
+  
+- **`tests/demo-data/`**: Data validation tests for demo files
+  
+- **`tests/fixtures/`**: Test fixtures, mock data, and test setup
+  - `data/`: Test VCF files
+
+### Running Tests
+
+```bash
+# Run tests once (CI mode)
+npm test
+
+# Run all tests in watch mode
+npm run test:watch
+
+# Run with coverage report
+npm run test:coverage
+```
+
+### Test Configuration
+
+- Testing framework: Vitest (configured in `vitest.config.ts`)
+- Obsidian API is mocked in `tests/fixtures/emptyObsidianMock.ts`
+- Coverage reports are generated in `./coverage` directory
+- Coverage includes all `src/**/*.ts` files except `.tsx` and `.d.ts` files
+
+## Coding Standards
+
+### TypeScript Guidelines
+
+- Use **strict TypeScript** with proper typing
+- Follow configured **ESLint rules**
+- Add **JSDoc comments** for public methods
+- Keep related functionality within appropriate models
+
+### Architecture Guidelines
+
+1. **Model-Based Organization**: Place functionality in appropriate domain models
+2. **Processor Pattern**: Implement data operations as processors when possible
+3. **Separation of Concerns**: Keep parsing, business logic, and UI separate
+4. **Dependency Injection**: Use dependency injection for testability
+5. **Error Handling**: Implement proper error handling and logging
+
+### File Organization
+
+- Source code: `src/`
+- Tests: `tests/`
+- Documentation: `docs/`
+- Build output: `main.js` (generated by esbuild)
+- Styles: `styles.css`
+- References:
+  - VCard specs: `references/vcard`
+  - Obsidian TypeScript API: `references/obsidian`
+
+## Development Workflow
+
+1. **Make changes** following the coding standards
+2. **Test changes**: `npm test`
+3. **Type check**: `npm run compile` (note: existing errors are expected)
+4. **Build**: `npm run build`
+5. **Commit** with clear messages
+
+### When Making Changes
+
+- Keep functionality within the appropriate model
+- Add or update tests for new functionality
+- Update documentation if adding new features
+- Ensure existing tests still pass
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` directory:
+
+- **`docs/development.md`**: Detailed development guide (start here)
+- **`docs/getting-started.md`**: User guide for getting started
+- **`docs/features.md`**: Feature overview
+- **`docs/vcard-format.md`**: VCard format guide
+- **`docs/user-stories.md`**: Usage scenarios
+
+## Common Tasks
+
+### Adding a New Curator Processor
+
+1. Create processor file in `src/curators/`
+2. Implement the processor interface from `src/models/curatorManager/CuratorProcessor.ts`
+3. Register processor in `src/models/curatorManager/curatorManager.ts`
+4. Add tests in `tests/units/curators/`
+
+### Modifying Contact Operations
+
+1. Locate the appropriate model (ContactNote, ContactManager, etc.)
+2. Add functionality to the relevant operation file
+3. Update types if needed
+4. Add or update tests in `tests/units/models/`
+
+### Working with VCF Files
+
+1. Modify parsing in `src/models/vcardFile/parsing.ts`
+2. Modify generation in `src/models/vcardFile/generation.ts`
+3. Update tests in `tests/units/models/vcardFile/`
+4. Test with demo VCF files in `docs/demo-data/vcf/`
+
+## Type Definitions
+
+### Location of Type Definitions
+
+Type definitions are organized by their domain:
+
+- **Plugin Settings**: `src/plugin/settings.ts` exports `ContactsPluginSettings` interface
+- **Curator Types**: `src/models/curatorManager/` contains:
+  - `CuratorProcessor.ts` - Processor interface
+  - `CuratorQueItem.ts` - Queue item type
+  - `CuratorSettingProperties.ts` - Curator settings
+  - `RunType.ts` - Enum for processor run types (IMMEDIATELY, UPCOMING, IMPROVEMENT)
+  - `index.ts` - Exports all curator types
+- **Model Types**: Each model exports its own types from its module (e.g., `ContactNote` exports `Contact`, `Gender`, etc.)
+
+## Important Notes
+
+- The plugin targets the Obsidian API - be mindful of platform constraints
+- Contact relationships are UID-based, not name-based
+- Gender-aware processing is a key feature - test relationship terms carefully
+- The write queue system prevents file conflicts - respect it when modifying file operations
+- Demo data is available in `docs/demo-data/` for testing
+
+## Build Configuration
+
+- **esbuild**: Configured in `esbuild.config.mjs`
+  - Entry point: `src/main.ts`
+  - Output: `main.js`
+  - External modules: Obsidian API and Codemirror packages
+  - Target: ES2022
+
+- **TypeScript**: Configured in `tsconfig.json`
+  - Strict mode enabled
+  - Target: ES2022
+  - Module: ESNext
+
+## Plugin Structure
+
+- **Entry point**: `src/main.ts`
+- **Plugin class**: Main Obsidian plugin implementation
+- **Settings**: `src/plugin/settings.ts` exports `ContactsPluginSettings` interface and `DEFAULT_SETTINGS`
+- **UI Components**: `src/plugin/ui/`
+- **Services**: `src/plugin/services/`
+- **Type Definitions**: Located with their respective modules (no separate `/src/interfaces/` directory)
+
+## Need Help?
+
+- Review the [Development Documentation](docs/development/) for comprehensive guidance
+- Check [GitHub Issues](https://github.com/iandennismiller/obsidian-vcf-contacts/issues) for known issues
+- See [User Stories](project/user-stories/) for usage scenarios and examples
+- See [Specifications](project/specifications/) for technical implementation details
