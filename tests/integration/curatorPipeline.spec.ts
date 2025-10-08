@@ -32,7 +32,7 @@ describe('Curator Pipeline Integration', () => {
             registry.register(genderInferenceProcessor);
             registry.register(genderRenderProcessor);
 
-            const processors = registry.getAllProcessors();
+            const processors = registry.getAll();
             expect(processors).toHaveLength(5);
             
             const processorNames = processors.map(p => p.name);
@@ -59,39 +59,45 @@ describe('Curator Pipeline Integration', () => {
         it('should queue contacts by priority', () => {
             const queue = new CuratorQueue();
 
-            queue.enqueue({ path: '/contact1.md', uid: 'uid-1' }, RunType.IMPROVEMENT);
-            queue.enqueue({ path: '/contact2.md', uid: 'uid-2' }, RunType.IMMEDIATELY);
-            queue.enqueue({ path: '/contact3.md', uid: 'uid-3' }, RunType.UPCOMING);
+            const contact1: ContactNote = { path: '/contact1.md', content: '', frontmatter: { UID: 'uid-1' } };
+            const contact2: ContactNote = { path: '/contact2.md', content: '', frontmatter: { UID: 'uid-2' } };
+            const contact3: ContactNote = { path: '/contact3.md', content: '', frontmatter: { UID: 'uid-3' } };
+
+            queue.enqueue(contact1, RunType.IMPROVEMENT);
+            queue.enqueue(contact2, RunType.IMMEDIATELY);
+            queue.enqueue(contact3, RunType.UPCOMING);
 
             // Should dequeue in priority order
             const item1 = queue.dequeue();
-            expect(item1?.uid).toBe('uid-2'); // IMMEDIATELY
+            expect(item1?.contact.frontmatter?.UID).toBe('uid-2'); // IMMEDIATELY
 
             const item2 = queue.dequeue();
-            expect(item2?.uid).toBe('uid-3'); // UPCOMING
+            expect(item2?.contact.frontmatter?.UID).toBe('uid-3'); // UPCOMING
 
             const item3 = queue.dequeue();
-            expect(item3?.uid).toBe('uid-1'); // IMPROVEMENT
+            expect(item3?.contact.frontmatter?.UID).toBe('uid-1'); // IMPROVEMENT
         });
 
         it('should prevent duplicate contacts in queue', () => {
             const queue = new CuratorQueue();
 
-            queue.enqueue({ path: '/contact.md', uid: 'uid-1' }, RunType.UPCOMING);
-            queue.enqueue({ path: '/contact.md', uid: 'uid-1' }, RunType.UPCOMING);
+            const contact: ContactNote = { path: '/contact.md', content: '', frontmatter: { UID: 'uid-1' } };
+            queue.enqueue(contact, RunType.UPCOMING);
+            queue.enqueue(contact, RunType.UPCOMING);
 
-            expect(queue.size()).toBe(1);
+            expect(queue.length()).toBe(1);
         });
 
         it('should upgrade priority if same contact queued with higher priority', () => {
             const queue = new CuratorQueue();
 
-            queue.enqueue({ path: '/contact.md', uid: 'uid-1' }, RunType.IMPROVEMENT);
-            queue.enqueue({ path: '/contact.md', uid: 'uid-1' }, RunType.IMMEDIATELY);
+            const contact: ContactNote = { path: '/contact.md', content: '', frontmatter: { UID: 'uid-1' } };
+            queue.enqueue(contact, RunType.IMPROVEMENT);
+            queue.enqueue(contact, RunType.IMMEDIATELY);
 
             const item = queue.dequeue();
-            expect(item?.uid).toBe('uid-1');
-            expect(queue.size()).toBe(0);
+            expect(item?.contact.frontmatter?.UID).toBe('uid-1');
+            expect(queue.length()).toBe(0);
         });
     });
 
@@ -103,7 +109,7 @@ FN: Test User
 
 Test content`;
 
-            const frontmatter = parseFrontmatter(content);
+            const { frontmatter, body } = parseFrontmatter(content);
             const contact: ContactNote = {
                 path: '/test.md',
                 frontmatter,
@@ -127,7 +133,7 @@ FN: Test User
 
 Test content`;
 
-            const frontmatter = parseFrontmatter(content);
+            const { frontmatter, body } = parseFrontmatter(content);
             const contact: ContactNote = {
                 path: '/test.md',
                 frontmatter,
@@ -147,7 +153,7 @@ FN: Test User
 
 Body content`;
 
-            const frontmatter = parseFrontmatter(content);
+            const { frontmatter, body } = parseFrontmatter(content);
             const contact: ContactNote = {
                 path: '/test.md',
                 frontmatter,
@@ -174,7 +180,7 @@ TEL.cell: +1-555-0123
 Some body content here.
 `;
 
-            const frontmatter = parseFrontmatter(content);
+            const { frontmatter, body } = parseFrontmatter(content);
             const contact: ContactNote = {
                 path: '/complex.md',
                 frontmatter,
@@ -201,7 +207,7 @@ Some body content here.
 
 Just body content`;
 
-            const frontmatter = parseFrontmatter(content);
+            const { frontmatter, body } = parseFrontmatter(content);
             const contact: ContactNote = {
                 path: '/minimal.md',
                 frontmatter,
@@ -224,7 +230,7 @@ FN: Test User
 
 Content`;
 
-            const frontmatter = parseFrontmatter(content);
+            const { frontmatter, body } = parseFrontmatter(content);
             const contact: ContactNote = {
                 path: '/test.md',
                 frontmatter,

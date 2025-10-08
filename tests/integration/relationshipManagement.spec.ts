@@ -4,9 +4,9 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseRelatedSection, generateRelatedSection, parseRelatedFrontmatter, generateRelatedFrontmatter, normalizeRelType, getGenderedRelType, inferGenderFromRelType } from '../../src/models/contactNote/relationships';
+import { parseRelatedSection, generateRelatedSection, parseRelatedFrontmatter, generateRelatedFrontmatter, normalizeRelationshipType, getGenderedRelationshipType, inferGenderFromType } from '../../src/models/contactNote/relationships';
 import { parseFrontmatter, generateFrontmatter } from '../../src/models/contactNote/frontmatter';
-import { getReverseRelationshipType, isSymmetricRelationship, normalizeRelationshipType } from '../../src/models/contactManager/relationships';
+import { getReverseRelationshipType, isSymmetricRelationship, normalizeRelationshipType as normalizeForComparison } from '../../src/models/contactManager/relationships';
 
 describe('Relationship Management Integration', () => {
     describe('Bidirectional Relationship Sync', () => {
@@ -29,41 +29,41 @@ describe('Relationship Management Integration', () => {
 
     describe('Gender-Aware Processing', () => {
         it('should normalize gendered relationship types', () => {
-            expect(normalizeRelType('mother')).toBe('parent');
-            expect(normalizeRelType('father')).toBe('parent');
-            expect(normalizeRelType('parent')).toBe('parent');
+            expect(normalizeRelationshipType('mother')).toBe('parent');
+            expect(normalizeRelationshipType('father')).toBe('parent');
+            expect(normalizeRelationshipType('parent')).toBe('parent');
 
-            expect(normalizeRelType('brother')).toBe('sibling');
-            expect(normalizeRelType('sister')).toBe('sibling');
-            expect(normalizeRelType('sibling')).toBe('sibling');
+            expect(normalizeRelationshipType('brother')).toBe('sibling');
+            expect(normalizeRelationshipType('sister')).toBe('sibling');
+            expect(normalizeRelationshipType('sibling')).toBe('sibling');
 
-            expect(normalizeRelType('son')).toBe('child');
-            expect(normalizeRelType('daughter')).toBe('child');
-            expect(normalizeRelType('child')).toBe('child');
+            expect(normalizeRelationshipType('son')).toBe('child');
+            expect(normalizeRelationshipType('daughter')).toBe('child');
+            expect(normalizeRelationshipType('child')).toBe('child');
         });
 
         it('should get gendered relationship types based on gender', () => {
-            expect(getGenderedRelType('parent', 'M')).toBe('father');
-            expect(getGenderedRelType('parent', 'F')).toBe('mother');
-            expect(getGenderedRelType('parent', '')).toBe('parent');
+            expect(getGenderedRelationshipType('parent', 'M')).toBe('father');
+            expect(getGenderedRelationshipType('parent', 'F')).toBe('mother');
+            expect(getGenderedRelationshipType('parent', '')).toBe('parent');
 
-            expect(getGenderedRelType('sibling', 'M')).toBe('brother');
-            expect(getGenderedRelType('sibling', 'F')).toBe('sister');
+            expect(getGenderedRelationshipType('sibling', 'M')).toBe('brother');
+            expect(getGenderedRelationshipType('sibling', 'F')).toBe('sister');
 
-            expect(getGenderedRelType('child', 'M')).toBe('son');
-            expect(getGenderedRelType('child', 'F')).toBe('daughter');
+            expect(getGenderedRelationshipType('child', 'M')).toBe('son');
+            expect(getGenderedRelationshipType('child', 'F')).toBe('daughter');
         });
 
         it('should infer gender from relationship types', () => {
-            expect(inferGenderFromRelType('mother')).toBe('F');
-            expect(inferGenderFromRelType('father')).toBe('M');
-            expect(inferGenderFromRelType('sister')).toBe('F');
-            expect(inferGenderFromRelType('brother')).toBe('M');
-            expect(inferGenderFromRelType('daughter')).toBe('F');
-            expect(inferGenderFromRelType('son')).toBe('M');
+            expect(inferGenderFromType('mother')).toBe('F');
+            expect(inferGenderFromType('father')).toBe('M');
+            expect(inferGenderFromType('sister')).toBe('F');
+            expect(inferGenderFromType('brother')).toBe('M');
+            expect(inferGenderFromType('daughter')).toBe('F');
+            expect(inferGenderFromType('son')).toBe('M');
 
-            expect(inferGenderFromRelType('parent')).toBeUndefined();
-            expect(inferGenderFromRelType('friend')).toBeUndefined();
+            expect(inferGenderFromType('parent')).toBeUndefined();
+            expect(inferGenderFromType('friend')).toBeUndefined();
         });
 
         it('should store genderless, display gendered workflow', () => {
@@ -71,15 +71,15 @@ describe('Relationship Management Integration', () => {
             const relType = 'mother';
 
             // Infer gender from relationship type
-            const inferredGender = inferGenderFromRelType(relType);
+            const inferredGender = inferGenderFromType(relType);
             expect(inferredGender).toBe('F');
 
             // Normalize to genderless for storage
-            const normalizedType = normalizeRelType(relType);
+            const normalizedType = normalizeRelationshipType(relType);
             expect(normalizedType).toBe('parent');
 
             // When displaying, use gender to show gendered term
-            const displayType = getGenderedRelType(normalizedType, inferredGender!);
+            const displayType = getGenderedRelationshipType(normalizedType, inferredGender!);
             expect(displayType).toBe('mother');
         });
     });
@@ -90,11 +90,11 @@ describe('Relationship Management Integration', () => {
             const relType = 'daughter';
 
             // Step 2: Infer gender from relationship (daughter -> F)
-            const inferredGender = inferGenderFromRelType(relType);
+            const inferredGender = inferGenderFromType(relType);
             expect(inferredGender).toBe('F');
 
             // Step 3: Normalize to genderless for storage
-            const normalizedType = normalizeRelType(relType);
+            const normalizedType = normalizeRelationshipType(relType);
             expect(normalizedType).toBe('child');
 
             // Step 4: Get reverse relationship
@@ -102,7 +102,7 @@ describe('Relationship Management Integration', () => {
             expect(reverseType).toBe('parent');
 
             // Step 5: When displaying, use gender to show gendered term
-            const displayType = getGenderedRelType('parent', inferredGender!);
+            const displayType = getGenderedRelationshipType('parent', inferredGender!);
             expect(displayType).toBe('mother'); // Shows "mother" because person is Female
         });
 
@@ -122,10 +122,10 @@ describe('Relationship Management Integration', () => {
             expect(isSymmetricRelationship(siblingType)).toBe(true);
 
             // Gender variants
-            expect(normalizeRelType('brother')).toBe('sibling');
-            expect(normalizeRelType('sister')).toBe('sibling');
-            expect(getGenderedRelType('sibling', 'M')).toBe('brother');
-            expect(getGenderedRelType('sibling', 'F')).toBe('sister');
+            expect(normalizeRelationshipType('brother')).toBe('sibling');
+            expect(normalizeRelationshipType('sister')).toBe('sibling');
+            expect(getGenderedRelationshipType('sibling', 'M')).toBe('brother');
+            expect(getGenderedRelationshipType('sibling', 'F')).toBe('sister');
         });
     });
 });
