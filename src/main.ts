@@ -29,6 +29,9 @@ export default class ContactsPlugin extends Plugin {
 		// Set up settings context for curator processors
 		setSettings(this.settings);
 
+		// Register settings tab
+		this.addSettingTab(new ContactsSettingTab(this.app, this));
+
 		// Note: Curator processors are registered in curatorRegistration.ts at module load time
 		// This ensures they're available when DEFAULT_SETTINGS is created
 

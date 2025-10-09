@@ -6,7 +6,7 @@
 import type { CuratorProcessor } from '../models/curatorManager/types.js';
 import { RunType } from '../models/curatorManager/types.js';
 import { parseRelatedFrontmatter, generateRelatedSection } from '../models/contactNote/relationships.js';
-import { findSection, replaceSection } from '../models/contactNote/markdown.js';
+import { findSectionByHeading, replaceSectionByHeading } from '../models/contactNote/markdown.js';
 
 // Simple interface for contact data
 interface ContactNote {
@@ -42,11 +42,11 @@ export const relatedListProcessor: CuratorProcessor = {
         const relatedSection = generateRelatedSection(relationships);
         
         // Check if Related section exists
-        const existingSection = findSection(contact.content, 'Related');
+        const existingSection = findSectionByHeading(contact.content, 'Related');
         
         if (existingSection) {
             // Replace existing section
-            contact.content = replaceSection(contact.content, 'Related', relatedSection);
+            contact.content = replaceSectionByHeading(contact.content, 'Related', relatedSection);
         } else {
             // Append new section
             contact.content = contact.content.trim() + '\n\n' + relatedSection;

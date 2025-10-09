@@ -5,8 +5,8 @@
 
 import type { CuratorProcessor } from '../models/curatorManager/types.js';
 import { RunType } from '../models/curatorManager/types.js';
-import { parseRelatedSection, getGenderedType, generateRelatedSection } from '../models/contactNote/relationships.js';
-import { replaceSection } from '../models/contactNote/markdown.js';
+import { parseRelatedSection, getGenderedRelationshipType, generateRelatedSection } from '../models/contactNote/relationships.js';
+import { replaceSectionByHeading } from '../models/contactNote/markdown.js';
 
 // Simple interface for contact data
 interface ContactNote {
@@ -40,13 +40,13 @@ export const genderRenderProcessor: CuratorProcessor = {
         // Convert to gendered types
         const genderedRelationships = relationships.map(rel => ({
             ...rel,
-            type: getGenderedType(rel.type, gender)
+            type: getGenderedRelationshipType(rel.type, gender)
         }));
         
         // Generate new Related section
         const relatedSection = generateRelatedSection(genderedRelationships);
         
         // Replace section
-        contact.content = replaceSection(contact.content, 'Related', relatedSection);
+        contact.content = replaceSectionByHeading(contact.content, 'Related', relatedSection);
     }
 };

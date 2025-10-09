@@ -2,6 +2,19 @@
  * ContactNote module exports
  */
 
+/**
+ * ContactNote data structure used by curator processors
+ * This is a simple data transfer object representing a contact note's essential data
+ */
+export interface ContactNote {
+  /** File path in the vault */
+  path: string;
+  /** Frontmatter data */
+  frontmatter?: Record<string, any>;
+  /** Markdown content */
+  content: string;
+}
+
 export type { Relationship, ContactSectionData, ContactField, Heading, ValidationResult } from './types';
 export { 
   parseFrontmatter, 
